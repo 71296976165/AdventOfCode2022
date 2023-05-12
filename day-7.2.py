@@ -31,6 +31,16 @@ class Tree:
         val += self.data
         return val
     
+    def revalue(self):
+        val = 0
+        if self.isDirectory() == "dir":
+            for x in self.children:
+                x.revalue()
+                val += x.getVal()
+        else:
+            val += self.data
+        self.data = val
+    
     def addChild(self, other):
         self.children.append(other)
         other.parent = self
@@ -49,7 +59,28 @@ class Tree:
         if len(self.children) == 0:
             return "file"
         return "dir"
-        
+    def draw_helper(node, level): 
+        s = ""
+        for child in node.children: 
+            s += child.draw_helper(level + 1) 
+            if child.isDirectory() == "file": 
+                s += "-" * level + child.name + " " + str(child.data) + '\n' 
+            else: s += "-" * level + '{' + child.name + '}' + " " + str(child.data) + '\n' 
+        return s
+
+    def draw(node): 
+        print(node.draw_helper(0))
+
+    def draw_helper_dir(node, level):
+        s = ""
+        for child in node.children: 
+            s += child.draw_helper_dir(level + 1) 
+            if child.isDirectory() == "dir": 
+                s += "-" * level + '{' + child.name + '}' + " " + str(child.data) + '\n' 
+        return s
+    
+    def draw_dir(node):
+        print(node.draw_helper_dir(0))
 
 root = Tree("root")
 root.addChild(Tree("/"))
@@ -83,6 +114,9 @@ for x in finalChild.children:
 
 finalChild.data = val
 
+finalChild.revalue()
+# root.draw_dir()
+
 f.close()
 
 import sys
@@ -105,22 +139,29 @@ file = open(treefile, "r")
 spaceNeeded = 30000000 - (70000000 - finalChild.data)
 mindir = 30000000
 dirname = ""
-print(spaceNeeded)
-print(mindir)
+filespace = 0
+
+directories = {}
 
 for line in file:
     line = line.strip('\n')
     dir = line.split()
     if dir[0] == "dir":
-        dirsize = int(dir[2])
-        if dirsize > spaceNeeded:
-            # if dirsize < mindir:
-            #     mindir = dirsize
-            #     dirname = dir[1]
-            print(dir[1], dir[2])
+        directories[int(dir[2])] = dir[1]
+        # dirsize = int(dir[2])
+        # if dirsize > spaceNeeded:
+        #     if dirsize < mindir:
+        #         mindir = dirsize
+        #         dirname = dir[1]
+        #     print(dir[1], dir[2])
+    elif dir[0] == "file":
+        filespace += int(dir[2])
 
-# print(mindir)
-# print(dirname)
+spaceNeeded = 30000000 - (70000000 - filespace)
+for dir in sorted(directories):
+    if dir > spaceNeeded:
+        print(dir, directories[dir])
+        break
 
 file.close()
 # just to clean up after ourselves
